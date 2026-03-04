@@ -2,6 +2,7 @@ package com.example.ungdungphatnhac_buoi8
 
 import android.app.*
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Binder
@@ -18,8 +19,6 @@ class MusicService : Service() {
     private val CHANNEL_ID = "MusicServiceChannel"
     private val NOTIFICATION_ID = 1
     private lateinit var mediaSession: MediaSessionCompat
-    
-    // Binder for Hybrid Service
     private val binder = LocalBinder()
 
     companion object {
@@ -37,10 +36,8 @@ class MusicService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "onCreate")
         createNotificationChannel()
         mediaSession = MediaSessionCompat(this, "MusicServiceSession")
-        
         initMediaPlayer()
     }
 
@@ -50,12 +47,10 @@ class MusicService : Service() {
             if (resId != 0) {
                 mediaPlayer = MediaPlayer.create(this, resId)
                 mediaPlayer?.apply {
-                    setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .build()
-                    )
+                    setAudioAttributes(AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build())
                     isLooping = true
                 }
             }
@@ -65,33 +60,29 @@ class MusicService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Cập nhật hoặc bắt đầu Foreground Service ngay lập tức
+        val notification = createNotification(isPlaying())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
+
         when (intent?.action) {
             ACTION_PLAY -> play()
             ACTION_PAUSE -> pause()
             ACTION_STOP -> stopMusic()
-            ACTION_PREVIOUS -> Log.d(TAG, "Previous clicked")
-            ACTION_NEXT -> Log.d(TAG, "Next clicked")
         }
         return START_STICKY
     }
 
-    override fun onBind(intent: Intent?): IBinder {
-        Log.d(TAG, "onBind")
-        return binder
-    }
-
-    override fun onUnbind(intent: Intent?): Boolean {
-        Log.d(TAG, "onUnbind")
-        return super.onUnbind(intent)
-    }
-
-    // --- Public Methods for Bound Activity ---
+    override fun onBind(intent: Intent?): IBinder = binder
 
     fun play() {
         mediaPlayer?.let {
             if (!it.isPlaying) {
                 it.start()
-                startForeground(NOTIFICATION_ID, createNotification(true))
+                updateNotification(true)
             }
         }
     }
@@ -100,17 +91,25 @@ class MusicService : Service() {
         mediaPlayer?.let {
             if (it.isPlaying) {
                 it.pause()
-                // Update notification but keep it in foreground (or allow swiping away)
-                val notificationManager = getSystemService(NotificationManager::class.java)
-                notificationManager.notify(NOTIFICATION_ID, createNotification(false))
-                
-                // Allow notification to be swiped if paused
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    stopForeground(STOP_FOREGROUND_DETACH)
-                } else {
-                    @Suppress("DEPRECATION")
-                    stopForeground(false)
-                }
+                updateNotification(false)
+            }
+        }
+    }
+
+    private fun updateNotification(isPlaying: Boolean) {
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(NOTIFICATION_ID, createNotification(isPlaying))
+        
+        // Nếu tạm dừng, cho phép người dùng vuốt bỏ thông báo (Android 13+)
+        if (!isPlaying && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_DETACH)
+        } else if (isPlaying) {
+            // Nếu đang phát, phải quay lại Foreground hoàn toàn
+            val notification = createNotification(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
             }
         }
     }
@@ -121,12 +120,7 @@ class MusicService : Service() {
             it.release()
         }
         mediaPlayer = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
@@ -135,13 +129,10 @@ class MusicService : Service() {
     fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
     fun seekTo(pos: Int) { mediaPlayer?.seekTo(pos) }
 
-    // --- Private Helpers ---
-
     private fun createNotification(isPlaying: Boolean): Notification {
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        // Actions for Notification
         val playPauseAction = if (isPlaying) {
             val pauseIntent = Intent(this, MusicService::class.java).apply { action = ACTION_PAUSE }
             val pausePendingIntent = PendingIntent.getService(this, 1, pauseIntent, PendingIntent.FLAG_IMMUTABLE)
@@ -152,12 +143,6 @@ class MusicService : Service() {
             NotificationCompat.Action(R.drawable.ic_play, "Play", playPendingIntent)
         }
 
-        val stopIntent = Intent(this, MusicService::class.java).apply { action = ACTION_STOP }
-        val stopPendingIntent = PendingIntent.getService(this, 3, stopIntent, PendingIntent.FLAG_IMMUTABLE)
-
-        val nextIntent = Intent(this, MusicService::class.java).apply { action = ACTION_NEXT }
-        val nextPendingIntent = PendingIntent.getService(this, 4, nextIntent, PendingIntent.FLAG_IMMUTABLE)
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Người Mẫu")
             .setContentText("Lý Vinh Hạo")
@@ -165,26 +150,19 @@ class MusicService : Service() {
             .setLargeIcon(android.graphics.BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher_lyvinhhao))
             .setOngoing(isPlaying)
             .setContentIntent(pendingIntent)
-            .addAction(R.drawable.ic_stop, "Previous", nextPendingIntent) // Reuse icon for demo
+            .addAction(android.R.drawable.ic_media_previous, "Previous", null)
             .addAction(playPauseAction)
-            .addAction(R.drawable.ic_stop, "Next", nextPendingIntent)
+            .addAction(android.R.drawable.ic_media_next, "Next", null)
             .setStyle(MediaStyle()
                 .setShowActionsInCompactView(0, 1, 2)
                 .setMediaSession(mediaSession.sessionToken))
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                CHANNEL_ID, "Music Service Channel",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Music Control Notifications"
-                setShowBadge(false)
-            }
+            val serviceChannel = NotificationChannel(CHANNEL_ID, "Music Service Channel", NotificationManager.IMPORTANCE_LOW)
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
         }
@@ -192,9 +170,7 @@ class MusicService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "onDestroy")
         mediaPlayer?.release()
-        mediaPlayer = null
         mediaSession.release()
     }
 }

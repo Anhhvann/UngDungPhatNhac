@@ -4,23 +4,51 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_bg"
-    android:padding="24dp"
+    android:background="@color/dark_bg"
     tools:context=".MainActivity">
 
-    <!-- Album Art with 24dp Corner and Shadow -->
+    <!-- Top Navigation Area -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:src="@android:drawable/ic_menu_revert"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/white" />
+
+    <TextView
+        android:id="@+id/tvHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Now Playing"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textAllCaps="true"
+        android:letterSpacing="0.1"
+        app:layout_constraintBottom_toBottomOf="@id/btnBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btnBack" />
+
+    <!-- Album Art with Soft Pastel Theme -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardAlbum"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="12dp"
-        app:layout_constraintBottom_toTopOf="@+id/tvSongName"
+        android:layout_marginHorizontal="40dp"
+        android:layout_marginTop="40dp"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="20dp"
+        app:strokeColor="@color/purple_pastel"
+        app:strokeWidth="2dp"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed">
+        app:layout_constraintTop_toBottomOf="@id/tvHeader">
 
         <ImageView
             android:id="@+id/imgAlbum"
@@ -30,52 +58,61 @@
             android:src="@mipmap/ic_launcher_lyvinhhao" />
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Song Information -->
+    <!-- Song Info -->
     <TextView
         android:id="@+id/tvSongName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="48dp"
         android:text="Người Mẫu"
         android:textColor="@color/white"
-        android:textSize="28sp"
+        android:textSize="26sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/cardAlbum"
         app:layout_constraintTop_toBottomOf="@id/cardAlbum" />
 
     <TextView
         android:id="@+id/tvArtist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:alpha="0.7"
+        android:layout_marginTop="4dp"
         android:text="Lý Vinh Hạo"
-        android:textColor="@color/white"
+        android:textColor="@color/gray_text"
         android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tvSongName"
         app:layout_constraintTop_toBottomOf="@id/tvSongName" />
 
-    <!-- Progress Section -->
+    <ImageView
+        android:id="@+id/btnFavorite"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@android:drawable/btn_star_big_off"
+        app:layout_constraintBottom_toBottomOf="@id/tvArtist"
+        app:layout_constraintEnd_toEndOf="@id/cardAlbum"
+        app:layout_constraintTop_toTopOf="@id/tvSongName"
+        app:tint="@color/purple_pastel" />
+
+    <!-- Progress Bar Section -->
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:progressTint="@color/white"
-        android:thumbTint="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="40dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:progressDrawable="@drawable/custom_seekbar_progress"
+        android:thumb="@drawable/custom_seekbar_thumb"
+        app:layout_constraintEnd_toEndOf="@id/cardAlbum"
+        app:layout_constraintStart_toStartOf="@id/cardAlbum"
         app:layout_constraintTop_toBottomOf="@id/tvArtist" />
 
     <TextView
         android:id="@+id/tvCurrentTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="00:00"
-        android:textColor="@color/white"
+        android:layout_marginTop="12dp"
+        android:text="0:00"
+        android:textColor="@color/gray_text"
         android:textSize="12sp"
         app:layout_constraintStart_toStartOf="@id/seekBar"
         app:layout_constraintTop_toBottomOf="@id/seekBar" />
@@ -84,67 +121,102 @@
         android:id="@+id/tvTotalTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="00:00"
-        android:textColor="@color/white"
+        android:layout_marginTop="12dp"
+        android:text="4:32"
+        android:textColor="@color/gray_text"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="@id/seekBar"
         app:layout_constraintTop_toBottomOf="@id/seekBar" />
 
-    <!-- Control Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Modern Controls -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/controlsLayout"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="@id/cardAlbum"
+        app:layout_constraintStart_toStartOf="@id/cardAlbum"
         app:layout_constraintTop_toBottomOf="@id/tvCurrentTime">
 
-        <ImageButton
+        <ImageView
+            android:id="@+id/btnShuffle"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_share"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/gray_text" />
+
+        <ImageView
             android:id="@+id/btnPrevious"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Previous"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_media_previous"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnPlayPause"
+            app:layout_constraintStart_toEndOf="@id/btnShuffle"
+            app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/white" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnPlayPause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="32dp"
-            android:contentDescription="Play/Pause"
-            app:backgroundTint="@color/white"
-            app:fabSize="normal"
+            app:backgroundTint="@color/purple_pastel"
+            app:fabCustomSize="72dp"
             app:maxImageSize="36dp"
             app:srcCompat="@drawable/ic_play"
-            app:tint="@color/black" />
+            app:tint="@color/dark_bg"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
+        <ImageView
             android:id="@+id/btnNext"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Next"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_media_next"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnRepeat"
+            app:layout_constraintStart_toEndOf="@id/btnPlayPause"
+            app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/white" />
 
-    </LinearLayout>
+        <ImageView
+            android:id="@+id/btnRepeat"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_revert"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/gray_text" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Mini Player / Bottom Navigation Style -->
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/btnStop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:contentDescription="Stop"
-        app:backgroundTint="#FF4B4B"
-        app:fabSize="mini"
+        android:layout_marginBottom="32dp"
+        app:cardBackgroundColor="#2D2D44"
+        app:cardCornerRadius="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_stop"
-        app:tint="@color/white" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="12dp"
+            android:text="CLOSE PLAYER"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
